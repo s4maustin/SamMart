@@ -105,7 +105,8 @@ public class DataSourceListener implements ServletContextListener {
     private void applySchema(DataSource ds) {
         try (Connection c = ds.getConnection(); Statement st = c.createStatement();
              ResultSet rs = st.executeQuery(
-                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME IN ('USERS','users')")) {
+                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES "
+                             + "WHERE TABLE_SCHEMA = 'PUBLIC' AND UPPER(TABLE_NAME) = 'USERS'")) {
             rs.next();
             if (rs.getInt(1) > 0) {
                 return;
