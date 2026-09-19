@@ -3,17 +3,25 @@ package com.sam.sammart.util;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializer;
 import com.sam.sammart.dto.ApiResponse;
 import com.sam.sammart.exception.AppException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 /**
  * JSON envelope writer for versioned API endpoints.
  */
 public final class JsonUtil {
-    private static final Gson GSON = new GsonBuilder().serializeNulls().create();
+    private static final Gson GSON = new GsonBuilder()
+            .serializeNulls()
+            .registerTypeAdapter(LocalDateTime.class,
+                    (JsonSerializer<LocalDateTime>) (src, type, ctx) ->
+                            src == null ? com.google.gson.JsonNull.INSTANCE : new JsonPrimitive(src.toString()))
+            .create();
 
     private JsonUtil() {
     }

@@ -35,6 +35,7 @@ public class ApiServlet extends HttpServlet {
         } catch (AppException e) {
             JsonUtil.writeError(resp, e);
         } catch (Exception e) {
+            getServletContext().log("API failure", e);
             JsonUtil.writeError(resp, 500, "SERVER_ERROR", "unexpected error");
         }
     }
