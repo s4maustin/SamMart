@@ -72,7 +72,12 @@ Health: `GET /sammart/api/v1/health` → `{ "status": "UP", "db": "UP" }`
 
 ## Deployed link
 
-_Not published yet — attach the Tomcat 9 / cloud URL before Monday’s demo._
+Live demo (while this PC is on and the tunnel is running):
+
+- App: https://thomson-fancy-hello-gaps.trycloudflare.com/sammart/
+- Health: https://thomson-fancy-hello-gaps.trycloudflare.com/sammart/api/v1/health
+
+Restart with `powershell -File scripts/start-public.ps1` if Tomcat or the tunnel stops. The trycloudflare host changes each restart.
 
 ## Features F1–F8
 
