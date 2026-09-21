@@ -96,10 +96,20 @@ public class DataSourceListener implements ServletContextListener {
         } catch (Exception e) {
             throw new IllegalStateException("Cannot load config.properties", e);
         }
+        String dataDir = System.getProperty("sammart.data");
+
+        if (dataDir != null && !dataDir.isBlank()) {
+          props.setProperty(
+            "jdbc.url",
+            "jdbc:h2:file:" + dataDir + "/sammart;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+    );
+}
+
         if (!props.containsKey("jdbc.url")) {
-            props.setProperty("jdbc.url", "jdbc:h2:mem:sammart;DB_CLOSE_DELAY=-1");
-        }
-        return props;
+          props.setProperty("jdbc.url", "jdbc:h2:mem:sammart;DB_CLOSE_DELAY=-1");
+}
+
+return props;
     }
 
     private void applySchema(DataSource ds) {
