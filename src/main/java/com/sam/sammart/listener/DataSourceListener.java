@@ -139,16 +139,18 @@ private Properties loadProps() {
 
     private void applySchema(DataSource ds) {
         try (Connection c = ds.getConnection(); Statement st = c.createStatement();
-             ResultSet rs = st.executeQuery(
-                     "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES "
-                             + "WHERE TABLE_SCHEMA = 'PUBLIC' AND UPPER(TABLE_NAME) = 'USERS'")) {
-            rs.next();
-            if (rs.getInt(1) > 0) {
-                return;
-            }
-        } catch (Exception ignored) {
-            // first boot
-        }
+          
+     ResultSet rs = st.executeQuery(
+             "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES "
+                     + "WHERE LOWER(TABLE_SCHEMA) = 'public' "
+                     + "AND LOWER(TABLE_NAME) = 'users'")) {
+    rs.next();
+    if (rs.getInt(1) > 0) {
+        return;
+    }
+} catch (Exception ignored) {
+    // first boot
+}
         String sql = readResource("/db/schema.sql");
         try (Connection c = ds.getConnection(); Statement st = c.createStatement()) {
             for (String part : sql.split(";")) {
