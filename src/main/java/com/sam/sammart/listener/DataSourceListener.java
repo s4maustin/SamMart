@@ -54,7 +54,7 @@ public class DataSourceListener implements ServletContextListener {
         cfg.setJdbcUrl(props.getProperty("jdbc.url"));
         cfg.setUsername(props.getProperty("jdbc.username", "sa"));
         cfg.setPassword(props.getProperty("jdbc.password", ""));
-        cfg.setDriverClassName("org.h2.Driver");
+        cfg.setDriverClassName(props.getProperty("jdbc.driver", "org.h2.Driver"));
         cfg.setMaximumPoolSize(Integer.parseInt(props.getProperty("hikari.maximumPoolSize", "10")));
         cfg.setPoolName("SamMartPool");
         pool = new HikariDataSource(cfg);
@@ -86,31 +86,56 @@ public class DataSourceListener implements ServletContextListener {
         return (DataSource) ctx.getAttribute(DS);
     }
 
-    private Properties loadProps() {
-        Properties props = new Properties();
-        try (InputStream in = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream("config.properties")) {
-            if (in != null) {
-                props.load(in);
-            }
-        } catch (Exception e) {
-            throw new IllegalStateException("Cannot load config.properties", e);
+private Properties loadProps() {
+    Properties props = new Properties();
+
+    try (InputStream in = Thread.currentThread().getContextClassLoader()
+            .getResourceAsStream("config.properties")) {
+        if (in != null) {
+            props.load(in);
         }
-        String dataDir = System.getProperty("sammart.data");
-
-        if (dataDir != null && !dataDir.isBlank()) {
-          props.setProperty(
-            "jdbc.url",
-            "jdbc:h2:file:" + dataDir + "/sammart;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
-    );
-}
-
-        if (!props.containsKey("jdbc.url")) {
-          props.setProperty("jdbc.url", "jdbc:h2:mem:sammart;DB_CLOSE_DELAY=-1");
-}
-
-return props;
+    } catch (Exception e) {
+        throw new IllegalStateException("Cannot load config.properties", e);
     }
+
+    // Production database configuration from environment variables.
+    String dbUrl = System.getenv("SAMMART_DB_URL");
+    String dbUsername = System.getenv("SAMMART_DB_USERNAME");
+    String dbPassword = System.getenv("SAMMART_DB_PASSWORD");
+
+    if (dbUrl != null && !dbUrl.isBlank()) {
+        props.setProperty("jdbc.url", dbUrl);
+        props.setProperty("jdbc.driver", "org.postgresql.Driver");
+
+        if (dbUsername != null && !dbUsername.isBlank()) {
+            props.setProperty("jdbc.username", dbUsername);
+        }
+
+        if (dbPassword != null) {
+            props.setProperty("jdbc.password", dbPassword);
+        }
+
+        return props;
+    }
+
+    // Optional H2 file location for Docker/local deployment.
+    String dataDir = System.getProperty("sammart.data");
+
+    if (dataDir != null && !dataDir.isBlank()) {
+        props.setProperty(
+                "jdbc.url",
+                "jdbc:h2:file:" + dataDir + "/sammart;AUTO_SERVER=TRUE;DB_CLOSE_DELAY=-1"
+        );
+        props.setProperty("jdbc.driver", "org.h2.Driver");
+    }
+
+    if (!props.containsKey("jdbc.url")) {
+        props.setProperty("jdbc.url", "jdbc:h2:mem:sammart;DB_CLOSE_DELAY=-1");
+        props.setProperty("jdbc.driver", "org.h2.Driver");
+    }
+
+    return props;
+}
 
     private void applySchema(DataSource ds) {
         try (Connection c = ds.getConnection(); Statement st = c.createStatement();
